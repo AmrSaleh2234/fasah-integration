@@ -1,0 +1,237 @@
+{
+  "info": {
+    "name": "Fasah Pay API",
+    "description": "Fasah Pay (Tabadul) invoice API examples. Import together with an environment file (Sandbox or Production), run 'Auth > Get JWT Token' first; it saves {{token}} automatically. X-Tabadul-Client-Id / X-Tabadul-Client-Secret headers are added to every request by a collection pre-request script.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.request.headers.upsert({ key: 'X-Tabadul-Client-Id', value: pm.variables.get('client_id') });",
+          "pm.request.headers.upsert({ key: 'X-Tabadul-Client-Secret', value: pm.variables.get('client_secret') });"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get JWT Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "let token = json.token || json.access_token || '';",
+                  "if (token.startsWith('Bearer ')) { token = token.substring(7); }",
+                  "pm.test('Token present', () => pm.expect(token).to.not.be.empty);",
+                  "pm.collectionVariables.set('token', token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": { "raw": "{{token_url}}", "host": ["{{token_url}}"] },
+            "description": "Returns a JWT. Sandbox: your sandbox username/password. Production: your real Fasah portal (oga.fasah.sa) username/password."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "Create General Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-GEN-1001\",\n  \"invoiceDescription\": \"General services\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-01-25\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"companyName\": \"Acme Trading\",\n  \"consumerEmail\": \"billing@acme.sa\",\n  \"consumerMobile\": \"0501234567\",\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"خدمة\",\n      \"itemDescriptionEnglish\": \"Service\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}", "host": ["{{invoice_base_url}}"] },
+            "description": "General invoice (no logistics fields). consumerMobile must be a Saudi mobile in 05XXXXXXXX format."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Accepted', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));", "const j = pm.response.json();", "pm.test('statusCode 00000', () => pm.expect(j.statusCode).to.eql('00000'));", "if (j.fasahpayInvoiceNumber) { pm.collectionVariables.set('fp_number', j.fasahpayInvoiceNumber); }"] } }]
+        },
+        {
+          "name": "Create Bill of Lading Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-BL-1001\",\n  \"invoiceDescription\": \"Freight charges\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-01-25\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"billofLadingNo\": \"MAEU123456\",\n  \"port\": \"10\",\n  \"shipmentType\": 1,\n  \"docRefNo\": \"12345678901234\",\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"شحن بحري\",\n      \"itemDescriptionEnglish\": \"Ocean freight\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/billoflading", "host": ["{{invoice_base_url}}"], "path": ["billoflading"] },
+            "description": "Option A: docRefNo. Option B: replace docRefNo with carrierManifest + carrierManifestDate (YYYY-MM-DD). Port 10 = Jeddah Islamic Port. shipmentType 1 = import."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["const j = pm.response.json();", "pm.test('statusCode 00000', () => pm.expect(j.statusCode).to.eql('00000'));", "if (j.fasahpayInvoiceNumber) { pm.collectionVariables.set('fp_number', j.fasahpayInvoiceNumber); }"] } }]
+        },
+        {
+          "name": "Create Bill of Lading Invoice (carrier manifest)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-BL-1002\",\n  \"invoiceDescription\": \"Freight charges\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-01-25\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"billofLadingNo\": \"MAEU123456\",\n  \"port\": \"10\",\n  \"shipmentType\": 1,\n  \"carrierManifest\": \"9876543\",\n  \"carrierManifestDate\": \"2026-01-05\",\n  \"consumerContactDetails\": {\n    \"companyNameEn\": \"Acme Trading\",\n    \"consumerEmail\": \"billing@acme.sa\",\n    \"consumerMobile\": \"0501234567\"\n  },\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"شحن بحري\",\n      \"itemDescriptionEnglish\": \"Ocean freight\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/billoflading", "host": ["{{invoice_base_url}}"], "path": ["billoflading"] }
+          }
+        },
+        {
+          "name": "Create Declaration Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-DEC-1001\",\n  \"invoiceDescription\": \"Customs declaration fees\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-01-25\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"declarationNumber\": \"123456\",\n  \"declarationDate\": \"2026-01-08\",\n  \"declarationType\": 1,\n  \"port\": \"10\",\n  \"billofLadingNo\": \"MAEU123456\",\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"رسوم بيان\",\n      \"itemDescriptionEnglish\": \"Declaration fees\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/declaration", "host": ["{{invoice_base_url}}"], "path": ["declaration"] }
+          }
+        },
+        {
+          "name": "Create Custom Broker Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-CB-1001\",\n  \"invoiceDescription\": \"Clearance services\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-01-25\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"customsBrokerLicenseNumber\": \"LIC12345\",\n  \"licenseType\": \"2\",\n  \"port\": \"10\",\n  \"billofLadingNo\": \"MAEU123456\",\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"تخليص جمركي\",\n      \"itemDescriptionEnglish\": \"Customs clearance\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/custombroker", "host": ["{{invoice_base_url}}"], "path": ["custombroker"] },
+            "description": "licenseType: 1 = government broker, 2 = general broker, 5 = clearance company."
+          }
+        },
+        {
+          "name": "Create Importer Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-IMP-1001\",\n  \"invoiceDescription\": \"Importer services\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-01-25\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"importerNumber\": \"7001234567\",\n  \"port\": \"10\",\n  \"billofLadingNo\": \"MAEU123456\",\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"خدمة\",\n      \"itemDescriptionEnglish\": \"Service\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/importer", "host": ["{{invoice_base_url}}"], "path": ["importer"] }
+          }
+        },
+        {
+          "name": "Create Shipping Agent Invoice",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-SA-1001\",\n  \"invoiceDescription\": \"Shipping agent services\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-01-25\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"shippingAgentNumber\": \"SA-123\",\n  \"port\": \"10\",\n  \"billofLadingNo\": \"MAEU123456\",\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"خدمة\",\n      \"itemDescriptionEnglish\": \"Service\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/shippingagent", "host": ["{{invoice_base_url}}"], "path": ["shippingagent"] }
+          }
+        },
+        {
+          "name": "Update Bill of Lading Invoice",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"billerVATNumber\": \"{{biller_vat}}\",\n  \"internalInvoiceNumber\": \"INV-BL-1001\",\n  \"invoiceDescription\": \"Freight charges (updated)\",\n  \"invoiceIssueDate\": \"2026-01-10\",\n  \"invoiceDueDate\": \"2026-02-10\",\n  \"paymentMethod\": \"Sadad\",\n  \"totalBeforeVAT\": 100.0,\n  \"totalVAT\": 15.0,\n  \"grandTotal\": 115.0,\n  \"billofLadingNo\": \"MAEU123456\",\n  \"port\": \"10\",\n  \"shipmentType\": 1,\n  \"docRefNo\": \"12345678901234\",\n  \"item\": [\n    {\n      \"invoiceLineSerialNo\": 1,\n      \"itemCode\": \"1\",\n      \"itemDescriptionArabic\": \"شحن بحري\",\n      \"itemDescriptionEnglish\": \"Ocean freight\",\n      \"itemPrice\": 100.0,\n      \"quantity\": 1.0,\n      \"lineItemAmount\": 100.0,\n      \"lineItemDiscount\": 0,\n      \"lineItemDiscountAmount\": 0.0,\n      \"lineItemAmountAfterDiscount\": 100.0,\n      \"lineItemVAT\": 15.0,\n      \"lineItemTotalVAT\": 15.0,\n      \"lineItemTotal\": 115.0,\n      \"unitOfMeasureArabic\": \"وحدة\",\n      \"unitOfMeasureEnglish\": \"unit\"\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/billoflading", "host": ["{{invoice_base_url}}"], "path": ["billoflading"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Subscribe Invoice Notifications",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notificationURL\": \"{{invoice_callback_url}}\",\n  \"providerType\": \"GEN\"\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/subscribenotifications", "host": ["{{invoice_base_url}}"], "path": ["subscribenotifications"] }
+          }
+        },
+        {
+          "name": "Subscribe Settlement Notifications",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"providerType\": \"GEN\",\n  \"settlementUrl\": \"{{settlement_callback_url}}\"\n}"
+            },
+            "url": { "raw": "{{invoice_base_url}}/subscribe-settlement", "host": ["{{invoice_base_url}}"], "path": ["subscribe-settlement"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Package Webhooks (simulate Fasah calling your app)",
+      "item": [
+        {
+          "name": "Invoice Notification (PAID)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Callback-Secret", "value": "{{callback_secret}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fasahpayInvoiceNumber\": \"{{fp_number}}\",\n  \"internalInvoiceNumber\": \"INV-BL-1001\",\n  \"invoiceStatus\": \"PAID\",\n  \"sadadNumber\": \"123456789012\"\n}"
+            },
+            "url": { "raw": "{{app_url}}/fasahpay/invoice-notification", "host": ["{{app_url}}"], "path": ["fasahpay", "invoice-notification"] },
+            "description": "Local test of the package's webhook route. Expect {\"statusCode\":\"00000\",\"statusDesc\":\"Received\"}."
+          }
+        },
+        {
+          "name": "Settlement Notification",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Callback-Secret", "value": "{{callback_secret}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"invoiceNumber\": \"{{fp_number}}\",\n    \"internalInvoiceNumber\": \"INV-BL-1001\",\n    \"sadadNumber\": \"123456789012\"\n  }\n]"
+            },
+            "url": { "raw": "{{app_url}}/fasahpay/settlement-notification", "host": ["{{app_url}}"], "path": ["fasahpay", "settlement-notification"] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "token", "value": "" },
+    { "key": "fp_number", "value": "" }
+  ]
+}

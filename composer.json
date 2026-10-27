@@ -1,0 +1,56 @@
+{
+    "name": "amrsaleh2234/fasah-integration",
+    "description": "Laravel package for Fasah Pay (Tabadul) integration: sandbox & production, invoice builder, typed invoices, callbacks, and artisan tools.",
+    "keywords": ["laravel", "fasah", "fasahpay", "tabadul", "saudi-arabia", "sadad", "invoices", "customs", "zatca"],
+    "license": "MIT",
+    "type": "library",
+    "homepage": "https://github.com/AmrSaleh2234/fasah-integration",
+    "authors": [
+        {
+            "name": "Amr Saleh",
+            "homepage": "https://github.com/AmrSaleh2234"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/cache": "^10.0|^11.0|^12.0",
+        "illuminate/console": "^10.0|^11.0|^12.0",
+        "illuminate/events": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "illuminate/routing": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "nesbot/carbon": "^2.67|^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AmrSaleh\\FasahPay\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AmrSaleh\\FasahPay\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "AmrSaleh\\FasahPay\\FasahPayServiceProvider"
+            ],
+            "aliases": {
+                "FasahPay": "AmrSaleh\\FasahPay\\Facades\\FasahPay"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
