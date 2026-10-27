@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="627" viewBox="0 0 1200 627">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22c55e"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="627" fill="url(#bg)"/>
+  <rect x="0" y="0" width="14" height="627" fill="url(#accent)"/>
+
+  <text x="70" y="95" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#22c55e" letter-spacing="3">OPEN SOURCE  ·  LARAVEL PACKAGE</text>
+
+  <text x="70" y="180" font-family="Helvetica, Arial, sans-serif" font-size="68" font-weight="800" fill="#ffffff">Fasah Pay Integration</text>
+  <text x="70" y="238" font-family="Helvetica, Arial, sans-serif" font-size="30" fill="#cbd5e1">Saudi customs &amp; logistics invoicing, made simple</text>
+
+  <g font-family="Helvetica, Arial, sans-serif" font-size="25" fill="#e2e8f0">
+    <text x="70" y="315"><tspan fill="#22c55e">✓</tspan>  Sandbox &amp; production in one config</text>
+    <text x="70" y="358"><tspan fill="#22c55e">✓</tspan>  JWT caching + auto refresh</text>
+    <text x="70" y="401"><tspan fill="#22c55e">✓</tspan>  6 invoice types, validated builder</text>
+    <text x="70" y="444"><tspan fill="#22c55e">✓</tspan>  Webhooks &amp; Laravel events</text>
+  </g>
+
+  <rect x="620" y="285" width="510" height="190" rx="16" fill="#0b1220" stroke="#334155" stroke-width="2"/>
+  <circle cx="650" cy="311" r="7" fill="#ef4444"/>
+  <circle cx="676" cy="311" r="7" fill="#eab308"/>
+  <circle cx="702" cy="311" r="7" fill="#22c55e"/>
+  <g font-family="Menlo, Monaco, Courier, monospace" font-size="19">
+    <text x="645" y="357" fill="#94a3b8">FasahPay::invoice(<tspan fill="#fbbf24">'billoflading'</tspan>)</text>
+    <text x="665" y="387" fill="#94a3b8">-&gt;internalNumber(<tspan fill="#fbbf24">'INV-1001'</tspan>)</text>
+    <text x="665" y="417" fill="#94a3b8">-&gt;details([...])</text>
+    <text x="665" y="447" fill="#94a3b8">-&gt;addItem([...])-&gt;<tspan fill="#22d3ee">send</tspan>();</text>
+  </g>
+
+  <rect x="70" y="500" width="760" height="62" rx="12" fill="#0b1220" stroke="url(#accent)" stroke-width="2"/>
+  <text x="95" y="541" font-family="Menlo, Monaco, Courier, monospace" font-size="24" fill="#ffffff">composer require amrsaleh2234/fasah-integration</text>
+
+  <text x="1130" y="595" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#94a3b8">github.com/AmrSaleh2234/fasah-integration</text>
+</svg>

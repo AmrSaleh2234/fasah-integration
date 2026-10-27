@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.png" alt="Fasah Pay Integration for Laravel" width="100%">
+</p>
+
 # Fasah Integration for Laravel
 
 [![tests](https://github.com/AmrSaleh2234/fasah-integration/actions/workflows/tests.yml/badge.svg)](https://github.com/AmrSaleh2234/fasah-integration/actions)
